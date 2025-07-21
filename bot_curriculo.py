@@ -6,6 +6,7 @@ from telegram.ext import (
     filters, ContextTypes, ConversationHandler
 )
 from fpdf import FPDF
+from fpdf.enums import XPos, YPos
 import io
 import re
 
@@ -73,15 +74,15 @@ class PDF(FPDF):
     def header(self):
         self.set_fill_color(70, 130, 180) # SteelBlue
         self.rect(0, 0, self.w, 20, 'F')
-        self.set_font('Arial', 'B', 16)
+        self.set_font('helvetica', 'B', 16)
         self.set_text_color(255, 255, 255) # White
-        self.cell(0, 10, 'Currículo Profissional', 0, 1, 'C')
+        self.cell(0, 10, 'Currículo Profissional', new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='C')
 
     def footer(self):
         self.set_y(-15)
-        self.set_font('Arial', 'I', 8)
+        self.set_font('helvetica', 'I', 8)
         self.set_text_color(128) # Gray
-        self.cell(0, 10, f'Página {self.page_no()}', 0, 0, 'C')
+        self.cell(0, 10, f'Página {self.page_no()}', new_x=XPos.RIGHT, new_y=YPos.TOP, align='C')
 
 def gerar_pdf(data):
     pdf = PDF()
@@ -95,32 +96,32 @@ def gerar_pdf(data):
 
     def secao(titulo):
         pdf.ln(4)
-        pdf.set_font('Arial', 'B', 14)
+        pdf.set_font('helvetica', 'B', 14)
         pdf.set_text_color(70, 130, 180) # SteelBlue
-        pdf.cell(0, 12, titulo, 0, 1) # Altura do título da seção (mantido em 12mm)
+        pdf.cell(0, 12, titulo, new_x=XPos.LMARGIN, new_y=YPos.NEXT) # Altura do título da seção (mantido em 12mm)
         pdf.set_text_color(0) # Black
-        pdf.set_font('Arial', '', 12)
+        pdf.set_font('helvetica', '', 12)
         pdf.set_x(left_margin)
 
     secao("Dados Pessoais")
     # Itens de dados pessoais com altura reduzida para 6mm
-    pdf.cell(0, 6, f"Nome: {data.get('nome', 'Não informado')}", 0, 1) 
+    pdf.cell(0, 6, f"Nome: {data.get('nome', 'Não informado')}", new_x=XPos.LMARGIN, new_y=YPos.NEXT) 
     pdf.set_x(left_margin)
-    pdf.cell(0, 6, f"Idade: {data.get('idade', 'Não informada')}", 0, 1) 
+    pdf.cell(0, 6, f"Idade: {data.get('idade', 'Não informada')}", new_x=XPos.LMARGIN, new_y=YPos.NEXT) 
     pdf.set_x(left_margin)
-    pdf.cell(0, 6, f"Estado Civil: {data.get('estado_civil', 'Não informado')}", 0, 1) 
+    pdf.cell(0, 6, f"Estado Civil: {data.get('estado_civil', 'Não informado')}", new_x=XPos.LMARGIN, new_y=YPos.NEXT) 
     pdf.set_x(left_margin)
-    pdf.cell(0, 6, f"Telefone: {data.get('telefone', 'Não informado')}", 0, 1) 
+    pdf.cell(0, 6, f"Telefone: {data.get('telefone', 'Não informado')}", new_x=XPos.LMARGIN, new_y=YPos.NEXT) 
     pdf.set_x(left_margin)
-    pdf.cell(0, 6, f"E-mail: {data.get('email', 'Não informado')}", 0, 1) 
+    pdf.cell(0, 6, f"E-mail: {data.get('email', 'Não informado')}", new_x=XPos.LMARGIN, new_y=YPos.NEXT) 
     pdf.set_x(left_margin)
 
     secao("Formação Acadêmica")
     if data.get('forma_2grau') == 'S':
         ano_2g = data.get('ano_2grau', 'Não informado')
-        pdf.cell(0, 6, f"Ensino Médio: Concluído em {ano_2g}", 0, 1) 
+        pdf.cell(0, 6, f"Ensino Médio: Concluído em {ano_2g}", new_x=XPos.LMARGIN, new_y=YPos.NEXT) 
     else:
-        pdf.cell(0, 6, f"Ensino Médio: Incompleto", 0, 1) 
+        pdf.cell(0, 6, f"Ensino Médio: Incompleto", new_x=XPos.LMARGIN, new_y=YPos.NEXT) 
     pdf.set_x(left_margin)
 
     graduacoes = data.get('graduacoes', [])
@@ -128,23 +129,23 @@ def gerar_pdf(data):
         for i, grad in enumerate(graduacoes):
             pdf.ln(1) # Pequeno espaçamento entre as graduações
             pdf.set_x(left_margin)
-            pdf.set_font('Arial', 'B', 11) 
-            pdf.cell(0, 7, f"Graduação {i+1}:", 0, 1) # Título de graduação maior
-            pdf.set_font('Arial', '', 11)
+            pdf.set_font('helvetica', 'B', 11) 
+            pdf.cell(0, 7, f"Graduação {i+1}:", new_x=XPos.LMARGIN, new_y=YPos.NEXT) # Título de graduação maior
+            pdf.set_font('helvetica', '', 11)
             
             pdf.set_x(left_margin + 5) 
-            pdf.cell(0, 5, f"Universidade: {grad.get('faculdade', '')}", 0, 1) # Reduzido para 5mm
+            pdf.cell(0, 5, f"Universidade: {grad.get('faculdade', '')}", new_x=XPos.LMARGIN, new_y=YPos.NEXT) # Reduzido para 5mm
             pdf.set_x(left_margin + 5)
-            pdf.cell(0, 5, f"Curso: {grad.get('curso', '')}", 0, 1) # Reduzido para 5mm
+            pdf.cell(0, 5, f"Curso: {grad.get('curso', '')}", new_x=XPos.LMARGIN, new_y=YPos.NEXT) # Reduzido para 5mm
             pdf.set_x(left_margin + 5)
             sit = grad.get('situacao', '')
             if sit == 'C':
-                pdf.cell(0, 5, f"Situação: Concluído em {grad.get('ano', '')}", 0, 1) # Reduzido para 5mm
+                pdf.cell(0, 5, f"Situação: Concluído em {grad.get('ano', '')}", new_x=XPos.LMARGIN, new_y=YPos.NEXT) # Reduzido para 5mm
             else:
-                pdf.cell(0, 5, f"Situação: Cursando", 0, 1) # Reduzido para 5mm
+                pdf.cell(0, 5, f"Situação: Cursando", new_x=XPos.LMARGIN, new_y=YPos.NEXT) # Reduzido para 5mm
             pdf.set_x(left_margin) 
     else:
-        pdf.cell(0, 6, "", 0, 1) # "Caso não tenha graduação"
+        pdf.cell(0, 6, "", new_x=XPos.LMARGIN, new_y=YPos.NEXT) # "Caso não tenha graduação"
         pdf.set_x(left_margin)
 
     pos_graduacoes = data.get('pos_graduacoes', [])
@@ -760,7 +761,7 @@ async def cursos(update, context):
     await update.message.reply_text("🎉 **Parabéns!** Seu currículo foi **gerado com sucesso** e está sendo enviado para você agora mesmo!\n\nPor favor, **verifique o arquivo PDF** anexo.", parse_mode='Markdown')
 
     pdf = gerar_pdf(context.user_data)
-    pdf_bytes = pdf.output(dest='S').encode('latin1')
+    pdf_bytes = pdf.output()
     bio = io.BytesIO(pdf_bytes)
     bio.name = "curriculo.pdf"
     bio.seek(0)
