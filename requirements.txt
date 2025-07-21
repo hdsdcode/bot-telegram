@@ -1,2 +1,2 @@
-python-telegram-bot==20.3
-fpdf2==2.7.4
+python-telegram-bot>=20.0,<21.0
+fpdf2>=2.7.0,<3.0

@@ -3,6 +3,9 @@ providers = ["python"]
 [variables]
 PYTHONUNBUFFERED = "1"
 
+[phases.setup]
+cmds = ["python -m pip install --upgrade pip"]
+
 [phases.install]
 cmds = ["pip install -r requirements.txt"]
 
