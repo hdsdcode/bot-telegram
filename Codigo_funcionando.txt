@@ -1,0 +1,221 @@
+from telegram import Update
+from telegram.ext import (
+    ApplicationBuilder,
+    CommandHandler,
+    MessageHandler,
+    filters,
+    ContextTypes,
+    ConversationHandler
+)
+from fpdf import FPDF
+import io
+import re
+import logging
+
+# Config logger para erros
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO
+)
+logger = logging.getLogger(__name__)
+
+# Estados da conversa
+ESCOLHA, NOME, CONTATO, EXPERIENCIA, EDUCACAO, HABILIDADES = range(6)
+
+# Validações simples
+def validar_texto(texto, min_palavras=2):
+    return len(texto.strip().split()) >= min_palavras
+
+def validar_email_ou_telefone(texto):
+    email_regex = r'^\S+@\S+\.\S+$'
+    telefone_regex = r'^\d{8,15}$'
+    return bool(re.match(email_regex, texto)) or bool(re.match(telefone_regex, texto))
+
+# PDF estilizado usando FPDF
+class PDF(FPDF):
+    def header(self):
+        self.set_fill_color(70, 130, 180)  # azul steel
+        self.rect(0, 0, self.w, 20, 'F')
+        self.set_font('Arial', 'B', 16)
+        self.set_text_color(255, 255, 255)  # branco
+        self.cell(0, 10, 'Currículo Profissional', 0, 1, 'C')
+
+    def footer(self):
+        self.set_y(-15)
+        self.set_font('Arial', 'I', 8)
+        self.set_text_color(128)
+        self.cell(0, 10, f'Página {self.page_no()}', 0, 0, 'C')
+
+def gerar_pdf(data):
+    pdf = PDF()
+    pdf.add_page()
+    pdf.set_auto_page_break(auto=True, margin=15)
+
+    pdf.set_text_color(0, 0, 0)
+
+    # Nome (com fundo lavanda clara)
+    pdf.set_fill_color(230, 230, 250)
+    pdf.set_font('Arial', 'B', 14)
+    pdf.cell(0, 12, "Nome:", 0, 1, 'L', True)
+    pdf.set_font('Arial', '', 12)
+    pdf.multi_cell(0, 10, data['nome'], 0, 1)
+    pdf.ln(5)
+
+    # Contato (com borda azul)
+    pdf.set_font('Arial', 'B', 14)
+    pdf.set_draw_color(70, 130, 180)
+    pdf.cell(0, 12, "Contato:", 1, 1, 'L')
+    pdf.set_font('Arial', '', 12)
+    pdf.multi_cell(0, 10, data['contato'], 1, 1)
+    pdf.ln(8)
+
+    # Experiência
+    pdf.set_font('Arial', 'B', 14)
+    pdf.set_text_color(70, 130, 180)
+    pdf.cell(0, 12, "Experiência Profissional:", 0, 1)
+    pdf.set_text_color(0)
+    pdf.set_font('Arial', '', 12)
+    pdf.multi_cell(0, 10, data['experiencia'])
+    pdf.ln(6)
+
+    # Educação
+    pdf.set_font('Arial', 'B', 14)
+    pdf.set_text_color(70, 130, 180)
+    pdf.cell(0, 12, "Formação Acadêmica:", 0, 1)
+    pdf.set_text_color(0)
+    pdf.set_font('Arial', '', 12)
+    pdf.multi_cell(0, 10, data['educacao'])
+    pdf.ln(6)
+
+    # Habilidades (com hífen)
+    pdf.set_font('Arial', 'B', 14)
+    pdf.set_text_color(70, 130, 180)
+    pdf.cell(0, 12, "Habilidades Principais:", 0, 1)
+    pdf.set_text_color(0)
+    pdf.set_font('Arial', '', 12)
+    habilidades = [h.strip() for h in data['habilidades'].split(',')]
+    for hab in habilidades:
+        pdf.cell(5)
+        pdf.cell(0, 8, f"- {hab}", 0, 1)
+
+    return pdf
+
+# Início da conversa
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        "👋 Olá! Vamos criar o seu currículo do zero. Responda com atenção, ok!\n\n"
+        "Irei recolher algumas informações pessoais.\n"
+        'Digite "S" para **Sim** e "N" para **Não** para continuar.'
+    )
+    return ESCOLHA
+
+# Consentimento
+async def escolha(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    resposta = update.message.text.strip().upper()
+    if resposta == 'N':
+        await update.message.reply_text("✅ Tudo bem. Processo encerrado. Digite /start se quiser tentar novamente.")
+        return ConversationHandler.END
+    elif resposta == 'S':
+        await update.message.reply_text("➡️ Primeiro, digite seu **nome completo** (mínimo 2 palavras):")
+        return NOME
+    else:
+        await update.message.reply_text('⚠️ Por favor, digite apenas "S" para Sim ou "N" para Não.')
+        return ESCOLHA
+
+# Nome
+async def nome(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not validar_texto(update.message.text, 2):
+        await update.message.reply_text("⚠️ Digite seu nome completo (mínimo 2 palavras).")
+        return NOME
+    context.user_data['nome'] = update.message.text.strip()
+    await update.message.reply_text("📱 Digite seu **telefone (só números):**")
+    return CONTATO
+
+# Contato
+async def contato(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    texto = update.message.text.strip()
+    if not validar_email_ou_telefone(texto):
+        await update.message.reply_text("⚠️ Contato inválido. Use apenas números ou e-mail válido.")
+        return CONTATO
+    context.user_data['contato'] = texto
+    await update.message.reply_text("💼 Escreva um resumo da sua **experiência profissional** (mínimo 5 palavras):")
+    return EXPERIENCIA
+
+# Experiência
+async def experiencia(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not validar_texto(update.message.text, 5):
+        await update.message.reply_text("⚠️ Detalhe mais sua experiência (mínimo 5 palavras).")
+        return EXPERIENCIA
+    context.user_data['experiencia'] = update.message.text.strip()
+    await update.message.reply_text("🎓 Informe sua **formação acadêmica** (mínimo 3 palavras):")
+    return EDUCACAO
+
+# Educação
+async def educacao(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not validar_texto(update.message.text, 3):
+        await update.message.reply_text("⚠️ Descreva melhor sua formação (mínimo 3 palavras).")
+        return EDUCACAO
+    context.user_data['educacao'] = update.message.text.strip()
+    await update.message.reply_text(
+        "🛠️ Liste suas **habilidades principais** separadas por vírgula (mínimo 2):\n"
+        "Ex: Comunicação, Informática, Trabalho em equipe"
+    )
+    return HABILIDADES
+
+# Habilidades e geração de PDF
+async def habilidades(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    try:
+        texto = update.message.text
+        if not validar_texto(texto, 2):
+            await update.message.reply_text("⚠️ Liste pelo menos 2 habilidades, separadas por vírgula.")
+            return HABILIDADES
+
+        context.user_data['habilidades'] = texto.strip()
+
+        pdf = gerar_pdf(context.user_data)
+        pdf_bytes = pdf.output(dest='S').encode('latin1')
+        pdf_buffer = io.BytesIO(pdf_bytes)
+        pdf_buffer.name = "curriculo_estilizado.pdf"
+
+        await update.message.reply_document(
+            document=pdf_buffer,
+            filename="curriculo_estilizado.pdf",
+            caption="✅ Aqui está seu currículo estilizado!"
+        )
+        await update.message.reply_text("Se quiser gerar outro, é só digitar /start.")
+        return ConversationHandler.END
+
+    except Exception as e:
+        logger.error(f"Erro na geração do PDF: {e}")
+        await update.message.reply_text(f"❌ Erro ao gerar ou enviar o PDF: {e}")
+        return ConversationHandler.END
+
+# Cancelamento
+async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("🚫 Criação do currículo cancelada. Para recomeçar, digite /start.")
+    return ConversationHandler.END
+
+# Main
+if __name__ == '__main__':
+    token = "7501669528:AAGMiGmscYFhhnSwGsENZlu1kcauoVI-UIM"  # Substitua pelo seu token real do Telegram
+
+    app = ApplicationBuilder().token(token).build()
+
+    conv_handler = ConversationHandler(
+        entry_points=[CommandHandler('start', start)],
+        states={
+            ESCOLHA: [MessageHandler(filters.TEXT & ~filters.COMMAND, escolha)],
+            NOME: [MessageHandler(filters.TEXT & ~filters.COMMAND, nome)],
+            CONTATO: [MessageHandler(filters.TEXT & ~filters.COMMAND, contato)],
+            EXPERIENCIA: [MessageHandler(filters.TEXT & ~filters.COMMAND, experiencia)],
+            EDUCACAO: [MessageHandler(filters.TEXT & ~filters.COMMAND, educacao)],
+            HABILIDADES: [MessageHandler(filters.TEXT & ~filters.COMMAND, habilidades)],
+        },
+        fallbacks=[CommandHandler('cancel', cancel)],
+        allow_reentry=True
+    )
+
+    app.add_handler(conv_handler)
+
+    print("✅ Bot rodando... Envie /start no Telegram para começar.")
+    app.run_polling()

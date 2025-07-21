@@ -1,0 +1,143 @@
+LÓGICA EMPLEMENTADA, PERFEITA
+----------------------------------------------------------------------------------------------------------------------------
+PODE EMPLEMENTAR ESSA LÓGICA NO BOTE, VISTO QUE O USUÁRIO PODE TER MAIS DE "1" "Curso"
+Pergunta 1: "Quantos cursos de idiomas você tem? (Digite 0, 1, 2 ou 3)"
+Se 0, o bot pula direto para "Cursos adicionais".
+Se 1, 2 ou 3, o bot pergunta para cada curso:
+Qual é o curso? (Ex: Espanhol)
+Situação: "S" para Concluído, "C" para Cursando
+Data inicial
+Data término
+Nível: "B" (Básico), "I" (Intermediário), "A" (Avançado)
+-----------------------------------------------------------------------------------------------------------------------------
+
+A pergunta deve ser a seguinte: Você tem curso de idiomas?
+Digite "S" para Sim, "N" para "Não" e "C" para "Cursando" Se for "N" pule para próxima pergunta, Se for "S" o bot pergunta: 
+Qual é o curso? Exemplo: "Espanhol"
+Data inicial:  
+Data término:
+Nível: "B", "I" ou "A", sendo "B" para "Básico", "I" para "Intermediário" ou "A" para "Avançado"
+Obs.: Caso o usuário responda: "C", então: 
+Qual é o curso? Exemplo: "Espanhol"
+Data inicial: 
+Data término:
+Nível: "B", "I" ou "A", sendo "B" para "Básico", "I" para "Intermediário" ou "A" para "Avançado"
+
+"Após resposta, ambas as condições, pule para próxima pergunta"
+-----------------------------------------------------------------------------------------------------------------------------
+Preciso que me implemente mais alguns detalhes, segue abaixo:
+"Nome:", Substitua por "Dados Pessoais"
+
+As perguntas dos "Dados Pessoais" Devem ser:
+Qual o Seu nome completo? "Favor digitar no mínimo 2 palavras"
+Qual a sua idade? "Digite apenas números, no mínimo 2 dígitos"
+Qual o seu Estado Civil?
+Qual o seu número de telefone? "Digite apenas números"
+Qual o seu E-mail?
+
+
+Em "Formação Acadêmica" precisamos ser espcíficos: Segue abaixo as perguntas:
+ESSA QUESTÃO ABAIXO DEVE VIR ANTES DA "GRADUAÇÃO" e "PÓS-GRADUAÇÃO", COM A SEGUINTE LÓGICA ABAIXO:
+
+
+"Formação Acadêmica"
+
+Você concluiu o Ensino Médio?, "S" para "Sim" e "N" para "Não", se for "S" então o bot pergunta, Ano que você concluiu: **/**/****
+Se for "N", 
+
+"PERGUNTA"
+"Quantos cursos de Graduação você possui? (Digite 0, 1, 2)"
+Se for "1" ou "2", o bot pergunta para cada Graduação:
+Qual o nome da Universidade ou Faculdade? Ex. "Universidade Paulista"
+Qual é o curso de Graduação? (Ex: Engenharia Civil)
+Situação: "C" para Concluído, então pergunta abaixo:                                         
+Qual o ano de formação? Ex.: 2025, então pula para próxima pergunta, se for "I", então "Cursando", passa para próxima pergunta,
+Se a opção for "2" então repete o mesmo ciclo de pergunta escolhida na opção "1" antes de ir para próxima pergunta
+Se for "0", então pula direto para pergunta abaixo, se for "1" ou "2" então passa para "PERGUNTA DE PÓS-GRADUAÇÃO" 
+
+"PERGUNTA DE PÓS-GRADUAÇÃO" 
+"Quantos cursos de Pós-Graduação você possui? (Digite 0, 1, 2)"
+Se for "1" ou "2", o bot pergunta para cada Pós-Graduação:
+Qual o nome da Universidade ou Faculdade? Ex. "Universidade Paulista"
+Qual é o curso de Pós-Graduação? (Ex: Ciência de Dados)
+Situação: "C" para Concluído, então pergunta abaixo:                                         
+Qual o ano de formação? Ex.: 2025, então pula para próxima pergunta, se for "I", então "Cursando", passa para próxima pergunta,
+Se a opção for "2" então repete o mesmo ciclo de pergunta escolhida na opção "1" antes de ir para próxima pergunta
+
+Ajuste:
+Na questão referente a Idioma:
+Tirar a "Data inicio" e "Data "término", pode substituir apenas por Qual o ano de formação? caso a condição seja "C" para "Concluído"
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-------------------------------------------------------------------------------------------------------------------------------------------------- 
+
+Formação Acadêmica — Nova Estrutura
+1. Graduação
+Pergunta inicial:
+Quantos cursos de Graduação você possui? (Digite 0, 1, 2)
+Se for 1 ou 2, repete o bloco abaixo para cada curso:
+Qual o nome da Universidade ou Faculdade?
+Qual é o curso de Graduação?
+Situação:
+C (Concluído) → pergunta: Qual o ano de formação?
+I (Cursando) → pula o ano
+Se for 0 → pula para o 2º Grau
+
+2. 2º Grau (Ensino Médio)
+Você possui o 2º Grau? (S para Sim, N para Não)
+Se for S, pergunta:
+Situação:
+C (Completo) → pergunta: Qual o ano de formação?
+I (Incompleto) → pula ano
+Se for N → segue para a próxima seção
+
+3. Pós-Graduação
+Pergunta inicial:
+Quantos cursos de Pós-Graduação você possui? (Digite 0, 1, 2)
+Se for 1 ou 2, repete o mesmo fluxo da Graduação:
+Nome da instituição
+Curso
+Situação (C ou I)
+Se C: Qual o ano de formação?
+✅ Próximo passo:
+Vou agora implementar isso no seu código, mantendo a estrutura simples, clara e acessível. Me confirme só mais uma coisa:
+O PDF também deverá listar cada curso separadamente, indicando:
+Tipo: Graduação, Pós-Graduação ou 2º Grau
+Instituição, curso, situação e ano (se aplicável)
+Certo?
+Se estiver tudo validado, posso seguir e gerar o código completo com essa nova seção de perguntas + inclusão no PDF. Pode confirmar ou ajustar se quiser!
+
+
+
+
+
+
+
+

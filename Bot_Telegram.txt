@@ -1,0 +1,149 @@
+CHAT BOT DO ZERO
+
+✅ Objetivo:
+Fazer um bot no Telegram, em Python, que:
+Interage com o usuário para coletar dados do currículo
+Valida as respostas (ex: evitar zoeira ou respostas fora do contexto)
+Gera um PDF automático
+Envia o PDF no próprio chat para o usuário imprimir
+
+O que você precisa:
+Visual Studio Code ✅ (você já tem)
+Python instalado (veremos no passo 1)
+Criar um bot no Telegram com o BotFather ✅ (veremos no passo 2)
+Código que vamos escrever juntos ✅
+Depois, podemos publicar na nuvem (Heroku, Railway etc.)
+
+🚀 PARTE 1 – Preparar o ambiente
+1º passo – Verificar se o Python está instalado
+Abra o terminal do Visual Studio Code (aperte Ctrl + aspas, ou vá em Terminal > Novo Terminal) e digite:
+python --version
+
+
+Definicao nome do Bot no Telegram
+Nome: curriculo2025_bot
+🔑 Token do bot:
+7501669528:AAGMiGmscYFhhnSwGsENZlu1kcauoVI-UIM
+Link do bot: 
+t.me/curriculo2025_bot
+Endereço do bot: https://t.me/curriculo2025_bot
+
+Estartar o bot: O path abaixo, esta o caminho do código python
+C:\Users\hamilton\Documents\bot-curriculo
+python bot_curriculo.py
+
+
+
+PARTE 2 (COLAR O CÓDIGO)
+Nome do arquivo Python:
+bot_curriculo.py
+
+from telegram import Update
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes, ConversationHandler
+from fpdf import FPDF
+import io
+import re
+
+# Etapas da conversa
+NOME, CONTATO, EXPERIENCIA, EDUCACAO, HABILIDADES = range(5)
+
+def validar_texto(texto, min_palavras=2):
+    return len(texto.split()) >= min_palavras
+
+def validar_email_ou_telefone(texto):
+    email_regex = r'^\S+@\S+\.\S+$'
+    telefone_regex = r'^\d{8,15}$'
+    return bool(re.match(email_regex, texto)) or bool(re.match(telefone_regex, texto))
+
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("Olá! Vamos montar seu currículo. Qual seu nome completo?")
+    return NOME
+
+async def nome(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not validar_texto(update.message.text):
+        await update.message.reply_text("Por favor, digite seu nome completo (mínimo 2 palavras).")
+        return NOME
+    context.user_data['nome'] = update.message.text
+    await update.message.reply_text("Qual seu telefone (só números) ou e-mail para contato?")
+    return CONTATO
+
+async def contato(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not validar_email_ou_telefone(update.message.text):
+        await update.message.reply_text("Digite um telefone (apenas números) ou um e-mail válido.")
+        return CONTATO
+    context.user_data['contato'] = update.message.text
+    await update.message.reply_text("Descreva brevemente sua experiência profissional:")
+    return EXPERIENCIA
+
+async def experiencia(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not validar_texto(update.message.text, 5):
+        await update.message.reply_text("Por favor, escreva ao menos 5 palavras sobre sua experiência.")
+        return EXPERIENCIA
+    context.user_data['experiencia'] = update.message.text
+    await update.message.reply_text("Descreva sua formação (escola, curso etc):")
+    return EDUCACAO
+
+async def educacao(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not validar_texto(update.message.text, 3):
+        await update.message.reply_text("Descreva um pouco melhor sua formação (mínimo 3 palavras).")
+        return EDUCACAO
+    context.user_data['educacao'] = update.message.text
+    await update.message.reply_text("Liste algumas habilidades que você tem:")
+    return HABILIDADES
+
+async def habilidades(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data['habilidades'] = update.message.text
+
+    # Gerar PDF
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)
+    pdf.cell(0, 10, f"Nome: {context.user_data['nome']}", ln=True)
+    pdf.cell(0, 10, f"Contato: {context.user_data['contato']}", ln=True)
+    pdf.cell(0, 10, "Experiência:", ln=True)
+    pdf.multi_cell(0, 10, context.user_data['experiencia'])
+    pdf.cell(0, 10, "Educação:", ln=True)
+    pdf.multi_cell(0, 10, context.user_data['educacao'])
+    pdf.cell(0, 10, "Habilidades:", ln=True)
+    pdf.multi_cell(0, 10, context.user_data['habilidades'])
+
+    pdf_buffer = io.BytesIO()
+    pdf.output(pdf_buffer)
+    pdf_buffer.seek(0)
+
+    await update.message.reply_document(document=pdf_buffer, filename="curriculo.pdf")
+    await update.message.reply_text("Currículo gerado com sucesso! Se quiser gerar outro, digite /start.")
+    return ConversationHandler.END
+
+async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("Operação cancelada. Para começar de novo, digite /start")
+    return ConversationHandler.END
+
+if __name__ == '__main__':
+    token = "7501669528:AAGMiGmscYFhhnSwGsENZlu1kcauoVI-UIM"
+
+    app = ApplicationBuilder().token(token).build()
+
+    conv_handler = ConversationHandler(
+        entry_points=[CommandHandler('start', start)],
+        states={
+            NOME: [MessageHandler(filters.TEXT & ~filters.COMMAND, nome)],
+            CONTATO: [MessageHandler(filters.TEXT & ~filters.COMMAND, contato)],
+            EXPERIENCIA: [MessageHandler(filters.TEXT & ~filters.COMMAND, experiencia)],
+            EDUCACAO: [MessageHandler(filters.TEXT & ~filters.COMMAND, educacao)],
+            HABILIDADES: [MessageHandler(filters.TEXT & ~filters.COMMAND, habilidades)],
+        },
+        fallbacks=[CommandHandler('cancel', cancel)]
+    )
+
+    app.add_handler(conv_handler)
+    print("✅ Bot rodando... Abra o Telegram e envie /start para seu bot.")
+    app.run_polling()
+	
+3º-PASSO (INSTALAR A BIBLIOTECA NO TERMINAL DO VISUAL STUDIO CODE)
+pip install python-telegram-bot fpdf
+
+
+
+
+
