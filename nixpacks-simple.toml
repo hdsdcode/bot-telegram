@@ -1,0 +1,8 @@
+[providers]
+python = "3.11"
+
+[variables]
+PYTHONUNBUFFERED = "1"
+
+[start]
+cmd = "python bot_curriculo.py"
