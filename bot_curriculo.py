@@ -1,4 +1,5 @@
 import logging
+import os
 from telegram import Update
 from telegram.ext import (
     ApplicationBuilder, CommandHandler, MessageHandler,
@@ -781,7 +782,11 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     return ConversationHandler.END
 
 def main():
-    token = "7501669528:AAGMiGmscYFhhnSwGsENZlu1kcauoVI-UIM" 
+    token = os.getenv("TELEGRAM_TOKEN")
+    if not token:
+        logger.error("TELEGRAM_TOKEN não encontrado nas variáveis de ambiente!")
+        return
+    
     application = ApplicationBuilder().token(token).build()
 
     conv_handler = ConversationHandler(
