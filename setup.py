@@ -6,6 +6,6 @@ setup(
     py_modules=["bot_curriculo"],
     install_requires=[
         "python-telegram-bot==20.0",
-        "fpdf2==2.7.0",
+        "fpdf2",
     ],
 )
