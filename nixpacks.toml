@@ -1,5 +1,4 @@
-[providers]
-python = "3.11"
+providers = ["python"]
 
 [variables]
 PYTHONUNBUFFERED = "1"
